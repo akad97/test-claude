@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz Python · Séance 2 · Conditions et boucles</title>
+<style>
+:root{
+  --navy:#14213d; --blue:#2f6db5; --bg:#fbf9f5; --card:#ffffff; --line:#d9dde5;
+  --ok:#1f8a4c; --warn:#c9741a; --bad:#c0392b; --soft:#eef2f9;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:Georgia,"Times New Roman",serif; background:var(--bg); color:var(--navy);
+  line-height:1.5; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
+}
+input,textarea{-webkit-user-select:text;user-select:text}
+@media print{body{display:none!important}}
+.wrap{max-width:820px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.7rem;margin:.2rem 0 .3rem}
+.eyebrow{color:var(--blue);font-weight:bold;letter-spacing:.06em;font-size:.8rem;text-transform:uppercase}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin:16px 0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
+.chip{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.9rem}
+label{display:block;font-weight:bold;font-size:.9rem;margin:12px 0 4px}
+input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:1rem;font-family:inherit;background:#fff;color:var(--navy)}
+input[type=text]:focus{outline:2px solid var(--blue);border-color:var(--blue)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
+.rules{margin:0;padding-left:20px}
+.rules li{margin:6px 0}
+.rules b{color:var(--bad)}
+.check{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-weight:normal}
+.check input{margin-top:5px;width:18px;height:18px}
+button{font-family:inherit;font-size:1rem;border-radius:8px;padding:10px 18px;border:1px solid var(--navy);background:var(--navy);color:#fff;cursor:pointer}
+button.ghost{background:#fff;color:var(--navy)}
+button.danger{background:var(--bad);border-color:var(--bad)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.err{color:var(--bad);font-size:.9rem;margin-top:8px;min-height:1.2em}
+/* quiz */
+.top{position:sticky;top:0;z-index:5;background:var(--navy);color:#fff;padding:10px 16px}
+.top .in{max-width:820px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.who{font-size:.85rem;opacity:.9}
+.timer{font-family:"Courier New",monospace;font-size:1.5rem;font-weight:bold;letter-spacing:.05em}
+.timer.warn{color:#ffc46b}.timer.crit{color:#ff8a80;animation:bl 1s infinite}
+@keyframes bl{50%{opacity:.45}}
+.exits{font-size:.85rem}
+.bar{height:5px;background:#e3e7ee}.bar>i{display:block;height:100%;background:var(--blue);width:0;transition:width .3s}
+.qnum{color:var(--blue);font-weight:bold;font-size:.9rem;text-transform:uppercase;letter-spacing:.05em}
+.qtext{font-size:1.2rem;font-weight:bold;margin:6px 0 12px}
+pre.code{background:#14213d;color:#e8ecf4;padding:14px 16px;border-radius:10px;font-family:"Courier New",monospace;font-size:.95rem;overflow-x:auto;margin:0 0 14px;white-space:pre}
+.opt{display:flex;gap:12px;align-items:center;border:2px solid var(--line);border-radius:10px;padding:12px 14px;margin:8px 0;cursor:pointer;background:#fff}
+.opt:hover{border-color:var(--blue)}
+.opt.sel{border-color:var(--blue);background:var(--soft)}
+.opt .l{flex:none;width:30px;height:30px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center;font-weight:bold;border:1px solid var(--line)}
+.opt.sel .l{background:var(--blue);color:#fff;border-color:var(--blue)}
+.opt.mono .t{font-family:"Courier New",monospace}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px;flex-wrap:wrap}
+.dots{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 0}
+.dot{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--navy);padding:0;font-size:.9rem}
+.dot.ans{background:var(--soft);border-color:var(--blue)}
+.dot.cur{background:var(--navy);color:#fff;border-color:var(--navy)}
+/* modal */
+#modal{position:fixed;inset:0;background:rgba(10,15,30,.7);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+#modal .box{background:#fff;border-radius:14px;max-width:480px;width:100%;padding:24px}
+#modal h3{margin:0 0 8px}
+#modal .btns{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+/* result */
+.score{font-size:3.2rem;font-weight:bold;line-height:1}
+.score small{font-size:1.3rem;color:#667}
+.st{padding:10px 14px;border-radius:8px;margin-top:12px;font-size:.95rem}
+.st.ok{background:#e4f5ea;color:var(--ok)}.st.wait{background:var(--soft)}.st.bad{background:#fdeaea;color:var(--bad)}
+table.rv{width:100%;border-collapse:collapse;font-size:.92rem;margin-top:10px}
+table.rv td,table.rv th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.good{color:var(--ok);font-weight:bold}.wrong{color:var(--bad);font-weight:bold}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+
+<noscript><div class="wrap"><div class="card">JavaScript est nécessaire pour passer ce quiz.</div></div></noscript>
+
+<!-- ============ ÉCRAN 1 : IDENTIFICATION + RÈGLES ============ -->
+<div id="sIntro" class="wrap">
+  <div class="eyebrow">Programmation en langage Python · Séance 2 sur 10</div>
+  <h1>Quiz noté : Conditions et boucles</h1>
+  <div class="chips">
+    <span class="chip">10 questions</span>
+    <span class="chip">⏱ 20 minutes</span>
+    <span class="chip">Note sur 20</span>
+    <span class="chip">1 seul essai</span>
+  </div>
+
+  <div class="card">
+    <b>Identification</b>
+    <div class="grid2">
+      <div><label for="fNom">Nom</label><input id="fNom" type="text" autocomplete="off"></div>
+      <div><label for="fPrenom">Prénom</label><input id="fPrenom" type="text" autocomplete="off"></div>
+      <div><label for="fCode">Code étudiant</label><input id="fCode" type="text" autocomplete="off"></div>
+      <div><label for="fClasse">Classe / Groupe</label><input id="fClasse" type="text" autocomplete="off" placeholder="ex. L3 GI"></div>
+    </div>
+    <div class="err" id="idErr"></div>
+  </div>
+
+  <div class="card">
+    <b>Règlement de l’évaluation (à lire attentivement)</b>
+    <ol class="rules">
+      <li>Vous disposez de <b>20 minutes</b>. Le chronomètre démarre dès le clic sur « Commencer » et <b>ne s’arrête jamais</b>. À 00:00, vos réponses sont envoyées automatiquement.</li>
+      <li>Le quiz est <b>individuel</b>. Aucune communication, aucun document, aucun téléphone, aucun outil d’IA ni aucun éditeur Python n’est autorisé.</li>
+      <li>Votre nom, prénom et code étudiant doivent être <b>exacts</b> : ils servent à enregistrer votre note.</li>
+      <li>Restez sur cette page en <b>plein écran</b>. Chaque sortie de la page (changement d’onglet ou de fenêtre, sortie du plein écran, rechargement) est enregistrée : la <b>1ʳᵉ sortie</b> donne un avertissement, <b>chaque sortie suivante retire 1 point</b>, et la <b>5ᵉ sortie met fin à l’examen</b>.</li>
+      <li>Copier, coller, clic droit, impression et raccourcis de développement sont désactivés.</li>
+      <li>Une seule réponse par question. Vous pouvez revenir sur vos réponses avant de valider.</li>
+      <li>Ne fermez pas la page avant d’avoir vu l’écran « Résultat ». Une connexion Internet est nécessaire à la fin pour enregistrer votre note.</li>
+      <li>Toute fraude ou tentative de fraude entraîne des sanctions conformément au règlement des examens.</li>
+    </ol>
+    <label class="check"><input type="checkbox" id="fAccept"> J’ai lu le règlement, je l’accepte et je confirme que mes informations sont exactes.</label>
+    <div style="margin-top:16px"><button id="btnStart" disabled>Commencer le quiz</button></div>
+    <div class="err" id="startErr"></div>
+  </div>
+</div>
+
+<!-- ============ ÉCRAN 2 : QUIZ ============ -->
+<div id="sQuiz" class="hide">
+  <div class="top"><div class="in">
+    <div class="who" id="qWho"></div>
+    <div class="timer" id="qTimer">20:00</div>
+    <div class="exits" id="qExits"></div>
+  </div></div>
+  <div class="bar"><i id="qBar"></i></div>
+  <div class="wrap">
+    <div class="card">
+      <div class="qnum" id="qNum"></div>
+      <div class="qtext" id="qText"></div>
+      <pre class="code hide" id="qCode"></pre>
+      <div id="qOpts"></div>
+      <div class="nav">
+        <button class="ghost" id="btnPrev">← Précédente</button>
+        <button id="btnNext">Suivante →</button>
+        <button class="danger hide" id="btnSubmit">Terminer et envoyer</button>
+      </div>
+    </div>
+    <div class="dots" id="qDots"></div>
+  </div>
+</div>
+
+<!-- ============ ÉCRAN 3 : RÉSULTAT ============ -->
+<div id="sResult" class="wrap hide">
+  <div class="eyebrow">Résultat</div>
+  <h1 id="rTitle">Quiz terminé</h1>
+  <div class="card">
+    <div class="score"><span id="rScore">0</span><small> / 20</small></div>
+    <p id="rDetail" style="margin:10px 0 0"></p>
+    <div class="st wait" id="rStatus"></div>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+      <button id="btnRetry" class="hide">Réessayer l’envoi</button>
+      <button class="ghost" id="btnReceipt">Télécharger mon reçu</button>
+      <button class="ghost hide" id="btnClose">Quitter</button>
+    </div>
+  </div>
+  <div class="card hide" id="rReview"><b>Correction</b><table class="rv" id="rTable"></table></div>
+</div>
+
+<div id="modal"><div class="box">
+  <h3 id="mTitle"></h3><div id="mBody"></div>
+  <div class="btns" id="mBtns"></div>
+</div></div>
+
+<script>
+/* =====================================================================
+   CONFIGURATION : seule cette section est à modifier
+   ===================================================================== */
+const CFG = {
+  SCRIPT_URL: "COLLEZ_ICI_L_URL_DU_SCRIPT_GOOGLE",  // URL de l'application web Apps Script (se termine par /exec)
+  DURATION_MIN: 20,        // durée en minutes
+  POINTS_PER_Q: 2,         // 10 questions x 2 pts = 20
+  FREE_WARNINGS: 1,        // nombre de sorties tolérées sans pénalité
+  PENALTY: 1,              // points retirés par sortie au-delà
+  MAX_EXITS: 5,            // à cette sortie, fin automatique
+  SHOW_CORRECTION: false,  // true = afficher la correction à la fin
+  KEY: "quiz_py_s2_v1",
+  ANS: "MTAxMDAwMTAwMA=="  // clé de réponses (encodée)
+};
+
+/* =====================================================================
+   QUESTIONS (la bonne réponse est dans CFG.ANS, indice de l'option 0-3)
+   ===================================================================== */
+const Q = [
+ { q:"Vous voulez tester si la variable x vaut 5. Quelle ligne est correcte ?",
+   o:["if x = 5:","if x == 5:","if x == 5","if x === 5:"], mono:true,
+   e:"= range une valeur dans une variable, == compare deux valeurs, et la ligne if se termine par deux-points." },
+ { q:"Qu'affiche ce programme ?",
+   c:"age = 20\nprint(age >= 18 and age <= 25 and not (age > 30))",
+   o:["True","False","20","SyntaxError"],
+   e:"Les trois conditions sont vraies (20 >= 18, 20 <= 25, not False), donc and donne True." },
+ { q:"Que s'affiche-t-il à l'écran avec ce programme ?",
+   c:"note = 8\nif note >= 10:\n    print(\"Admis\")\n    print(\"Bravo\")\nprint(\"Fin\")",
+   o:["Admis, puis Bravo, puis Fin","Fin","Bravo, puis Fin","Rien du tout"],
+   e:"8 >= 10 est faux : le bloc indenté est ignoré. Seul print(\"Fin\"), hors du bloc, est exécuté." },
+ { q:"Qu'affiche ce programme ?",
+   c:"n = 15\nif n > 5:\n    print(\"A\")\nelif n > 10:\n    print(\"B\")\nelse:\n    print(\"C\")",
+   o:["A","B","A puis B","C"],
+   e:"Python teste dans l'ordre et s'arrête à la première condition vraie : n > 5 est vraie, donc seul A s'affiche." },
+ { q:"Quelles valeurs la variable i prend-elle successivement ?",
+   c:"for i in range(2, 10, 3):\n    print(i)",
+   o:["2, 5, 8","2, 5, 8, 10","3, 6, 9","2, 5"],
+   e:"On part de 2, on avance de 3 en 3 : 2, 5, 8. Le suivant (11) dépasse la fin, qui est de toute façon exclue." },
+ { q:"Quelle valeur ce programme affiche-t-il ?",
+   c:"somme = 0\nfor i in range(1, 5):\n    somme += i\nprint(somme)",
+   o:["10","15","4","6"],
+   e:"range(1, 5) donne 1, 2, 3, 4 (5 exclu) : 1 + 2 + 3 + 4 = 10." },
+ { q:"Combien de lignes ce programme affiche-t-il en tout ?",
+   c:"n = 3\nwhile n > 0:\n    print(n)\n    n -= 1\nprint(\"Décollage !\")",
+   o:["3","4","5","Une infinité"],
+   e:"Il affiche 3, 2, 1 (3 lignes dans la boucle), puis « Décollage ! » : 4 lignes." },
+ { q:"Qu'affiche ce programme ?",
+   c:"for i in range(1, 11):\n    if i % 4 == 0:\n        break\n    print(i, end=\" \")",
+   o:["1 2 3","1 2 3 5 6 7 9 10","1 2 3 4","1 2 3 4 5 6 7 8 9 10"], mono:true,
+   e:"À i = 4, 4 % 4 == 0 : break quitte la boucle. Avec continue, on aurait seulement sauté 4 et 8." },
+ { q:"Ce programme ne s'arrête jamais. Quelle est la cause et la correction ?",
+   c:"i = 0\nwhile i < 5:\n    print(i)",
+   o:["i n'est jamais modifié : ajouter i += 1 dans le bloc",
+      "La condition est fausse au départ : écrire i > 5",
+      "Il manque un deux-points après while : l'ajouter",
+      "print(i) est mal placé : le sortir de la boucle"],
+   e:"La condition i < 5 reste vraie car i ne change jamais : il faut modifier i dans le bloc." },
+ { q:"L'utilisateur tape 7. Que se passe-t-il ?",
+   c:"n = input(\"Un nombre : \")\nif n % 2 == 0:\n    print(\"pair\")",
+   o:["TypeError : input() renvoie du texte, il faut convertir avec int()",
+      "Le programme n'affiche rien, car 7 est impair",
+      "SyntaxError : il manque un else",
+      "IndentationError : le bloc est mal décalé"],
+   e:"input() renvoie une chaîne : « 7 » % 2 provoque une TypeError. Il faut écrire n = int(input(...))." }
+];
+
+/* =====================================================================
+   OUTILS
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const LET = ["A","B","C","D"];
+const ANS = atob(CFG.ANS).split("").map(Number);
+let S = null, timerId = null, cur = 0, lastViol = 0, wasFS = false, retryTimer = null;
+
+const shuffle = a => { for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const pad = n => String(n).padStart(2,"0");
+const fmt = ms => { const s=Math.max(0,Math.ceil(ms/1000)); return pad(Math.floor(s/60))+":"+pad(s%60); };
+const load = k => { try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } };
+const store = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+const save = () => store(CFG.KEY, S);
+const doneList = () => load(CFG.KEY+"_done") || [];
+const norm = s => s.trim().replace(/\s+/g," ");
+
+function show(id){ ["sIntro","sQuiz","sResult"].forEach(x => $("#"+x).classList.toggle("hide", x!==id)); window.scrollTo(0,0); }
+
+function modal(title, html, buttons){
+  $("#mTitle").textContent = title; $("#mBody").innerHTML = html;
+  const b = $("#mBtns"); b.innerHTML = "";
+  buttons.forEach(([label, cls, fn]) => {
+    const el = document.createElement("button"); el.textContent = label; if (cls) el.className = cls;
+    el.onclick = () => { closeModal(); fn && fn(); }; b.appendChild(el);
+  });
+  $("#modal").style.display = "flex";
+}
+function closeModal(){ $("#modal").style.display = "none"; }
+const goFS = () => { const d=document.documentElement; if (d.requestFullscreen) d.requestFullscreen().then(()=>{wasFS=true}).catch(()=>{}); };
+
+/* =====================================================================
+   INTRO
+   ===================================================================== */
+["fNom","fPrenom","fCode","fClasse","fAccept"].forEach(id => $("#"+id).addEventListener("input", checkForm));
+$("#fAccept").addEventListener("change", checkForm);
+function checkForm(){
+  const ok = norm($("#fNom").value).length>=2 && norm($("#fPrenom").value).length>=2 &&
+             /^[A-Za-z0-9._\-\/]{3,25}$/.test($("#fCode").value.trim()) && $("#fAccept").checked;
+  $("#btnStart").disabled = !ok;
+}
+$("#btnStart").onclick = () => {
+  const code = $("#fCode").value.trim().toUpperCase();
+  if (doneList().includes(code)){
+    $("#startErr").textContent = "Un résultat existe déjà pour ce code étudiant sur cet appareil. Un seul essai est autorisé.";
+    return;
+  }
+  const id = { nom:norm($("#fNom").value).toUpperCase(), prenom:norm($("#fPrenom").value), code, classe:norm($("#fClasse").value) };
+  modal("Confirmer votre identité",
+    `<p><b>${esc(id.nom)} ${esc(id.prenom)}</b><br>Code : <b>${esc(id.code)}</b><br>Classe : ${esc(id.classe)||"—"}</p>
+     <p>Le chronomètre de <b>${CFG.DURATION_MIN} minutes</b> démarre immédiatement. Ces informations sont-elles exactes ?</p>`,
+    [["Corriger","ghost"],["Oui, commencer","",() => begin(id)]]);
+};
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function begin(id){
+  const now = Date.now();
+  S = {
+    id, order: shuffle(Q.map((_,i)=>i)),
+    optOrder: Q.map(q => shuffle([0,1,2,3])),
+    answers: {}, startTs: now, deadline: now + CFG.DURATION_MIN*60000,
+    exits: 0, penalty: 0, finished: false, sent: false, sub: Math.random().toString(36).slice(2,10).toUpperCase()
+  };
+  save(); goFS(); startQuiz();
+}
+
+/* =====================================================================
+   QUIZ
+   ===================================================================== */
+function startQuiz(){
+  show("sQuiz"); cur = 0;
+  $("#qWho").textContent = `${S.id.nom} ${S.id.prenom} · ${S.id.code}`;
+  renderQ(); updateExits(); tick();
+  clearInterval(timerId); timerId = setInterval(tick, 250);
+}
+function tick(){
+  if (!S || S.finished) return;
+  const left = S.deadline - Date.now();
+  if (left <= 0){ finish("temps ecoule"); return; }
+  const t = $("#qTimer"); t.textContent = fmt(left);
+  t.className = "timer" + (left<=60000 ? " crit" : left<=300000 ? " warn" : "");
+}
+function updateExits(){
+  $("#qExits").textContent = `Sorties : ${S.exits}/${CFG.MAX_EXITS}` + (S.penalty ? ` · −${S.penalty} pt` : "");
+}
+function renderQ(){
+  const qi = S.order[cur], q = Q[qi], n = Q.length;
+  $("#qNum").textContent = `Question ${cur+1} sur ${n}`;
+  $("#qText").textContent = q.q;
+  const c = $("#qCode");
+  if (q.c){ c.textContent = q.c; c.classList.remove("hide"); } else c.classList.add("hide");
+  const box = $("#qOpts"); box.innerHTML = "";
+  S.optOrder[qi].forEach((orig, pos) => {
+    const d = document.createElement("div");
+    d.className = "opt" + (q.mono ? " mono" : "") + (S.answers[qi]===orig ? " sel" : "");
+    d.innerHTML = `<span class="l">${LET[pos]}</span><span class="t"></span>`;
+    d.querySelector(".t").textContent = q.o[orig];
+    d.onclick = () => { S.answers[qi] = orig; save(); renderQ(); };
+    box.appendChild(d);
+  });
+  $("#btnPrev").disabled = cur===0;
+  $("#btnNext").classList.toggle("hide", cur===n-1);
+  $("#btnSubmit").classList.toggle("hide", cur!==n-1);
+  const dots = $("#qDots"); dots.innerHTML = "";
+  S.order.forEach((idx, i) => {
+    const b = document.createElement("button");
+    b.className = "dot" + (i===cur ? " cur" : S.answers[idx]!==undefined ? " ans" : "");
+    b.textContent = i+1; b.onclick = () => { cur = i; renderQ(); };
+    dots.appendChild(b);
+  });
+  const answered = Object.keys(S.answers).length;
+  $("#qBar").style.width = (answered/n*100)+"%";
+}
+$("#btnPrev").onclick = () => { if (cur>0){ cur--; renderQ(); } };
+$("#btnNext").onclick = () => { if (cur<Q.length-1){ cur++; renderQ(); } };
+$("#btnSubmit").onclick = () => {
+  const un = Q.length - Object.keys(S.answers).length;
+  modal("Terminer le quiz ?",
+    un ? `<p>Il vous reste <b>${un} question(s) sans réponse</b>. Elles seront comptées fausses.</p><p>Voulez-vous vraiment valider ?</p>`
+       : `<p>Vous avez répondu à toutes les questions. Une fois validé, vous ne pourrez plus modifier vos réponses.</p>`,
+    [["Revenir au quiz","ghost"],["Valider et envoyer","danger",() => finish("soumis")]]);
+};
+
+/* =====================================================================
+   SURVEILLANCE
+   ===================================================================== */
+function inQuiz(){ return S && !S.finished && !$("#sQuiz").classList.contains("hide"); }
+function violation(reason){
+  if (!inQuiz()) return;
+  const now = Date.now(); if (now - lastViol < 1500) return; lastViol = now;
+  S.exits++;
+  const penalised = S.exits > CFG.FREE_WARNINGS;
+  if (penalised) S.penalty += CFG.PENALTY;
+  save(); updateExits();
+  if (S.exits >= CFG.MAX_EXITS){ finish("exclu"); return; }
+  const left = CFG.MAX_EXITS - S.exits;
+  modal(penalised ? "⚠ Sortie enregistrée : −"+CFG.PENALTY+" point" : "⚠ Avertissement",
+    `<p>Sortie détectée (${esc(reason)}). C'est la sortie n°<b>${S.exits}</b>.</p>
+     <p>${penalised ? "Une pénalité a été appliquée." : "Aucune pénalité cette fois, mais chaque sortie suivante retire <b>"+CFG.PENALTY+" point</b>."}
+     Encore <b>${left}</b> sortie(s) avant la fin automatique de l'examen.</p>
+     <p>Le chronomètre continue de tourner.</p>`,
+    [["Reprendre le quiz","",goFS]]);
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden) violation("changement d'onglet"); });
+window.addEventListener("blur", () => { violation("fenêtre quittée"); });
+document.addEventListener("fullscreenchange", () => {
+  if (document.fullscreenElement) wasFS = true;
+  else if (wasFS) violation("plein écran quitté");
+});
+window.addEventListener("beforeunload", e => { if (inQuiz()){ e.preventDefault(); e.returnValue = ""; } });
+["copy","cut","paste","contextmenu","dragstart","selectstart"].forEach(ev =>
+  document.addEventListener(ev, e => { if (!/INPUT/.test(e.target.tagName) || ev!=="selectstart") e.preventDefault(); }));
+document.addEventListener("keydown", e => {
+  const k = e.key.toLowerCase();
+  if (e.key==="F12" || e.key==="PrintScreen" ||
+      ((e.ctrlKey||e.metaKey) && ["c","v","x","u","s","p","a"].includes(k) && !(["a","c","v","x"].includes(k) && /INPUT/.test(e.target.tagName))) ||
+      ((e.ctrlKey||e.metaKey) && e.shiftKey && ["i","j","c"].includes(k))) e.preventDefault();
+});
+
+/* =====================================================================
+   FIN, NOTE ET ENVOI
+   ===================================================================== */
+function compute(){
+  let good = 0;
+  Q.forEach((q,i) => { if (S.answers[i] === ANS[i]) good++; });
+  const raw = good * CFG.POINTS_PER_Q;
+  return { good, raw, note: Math.max(0, raw - S.penalty) };
+}
+function finish(reason){
+  if (!S || S.finished) return;
+  S.finished = true; S.reason = reason; S.endTs = Math.min(Date.now(), S.deadline);
+  S.result = compute();
+  const d = doneList(); if (!d.includes(S.id.code)){ d.push(S.id.code); store(CFG.KEY+"_done", d); }
+  save(); clearInterval(timerId); closeModal();
+  if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+  showResult(); send();
+}
+function payload(){
+  const r = S.result, dur = Math.round((S.endTs - S.startTs)/1000);
+  const rep = Q.map((q,i) => "Q"+(i+1)+":"+(S.answers[i]===undefined ? "-" : LET[S.answers[i]])).join(" ");
+  return {
+    soumission:S.sub, nom:S.id.nom, prenom:S.id.prenom, code:S.id.code, classe:S.id.classe,
+    note:r.note, bonnes:r.good, penalites:S.penalty, sorties:S.exits,
+    duree:pad(Math.floor(dur/60))+":"+pad(dur%60), motif:S.reason, reponses:rep
+  };
+}
+function showResult(){
+  show("sResult");
+  const r = S.result;
+  $("#rTitle").textContent = S.reason==="exclu" ? "Examen interrompu" : S.reason==="temps ecoule" ? "Temps écoulé" : "Quiz terminé";
+  $("#rScore").textContent = r.note;
+  $("#rDetail").textContent = `${r.good} bonne(s) réponse(s) sur ${Q.length}` +
+    (S.penalty ? ` · pénalités : −${S.penalty} pt (${S.exits} sortie(s))` : "") +
+    (S.reason==="exclu" ? " · fin automatique : trop de sorties de la page" : "");
+  if (CFG.SHOW_CORRECTION){
+    $("#rReview").classList.remove("hide");
+    $("#rTable").innerHTML = "<tr><th>#</th><th>Votre réponse</th><th>Bonne réponse</th></tr>" +
+      Q.map((q,i) => {
+        const a = S.answers[i], ok = a===ANS[i];
+        return `<tr><td>${i+1}</td><td class="${ok?"good":"wrong"}">${a===undefined?"—":esc(q.o[a])}</td><td>${esc(q.o[ANS[i]])}<br><small>${esc(q.e)}</small></td></tr>`;
+      }).join("");
+  }
+  setStatus(S.sent ? "sent" : "wait");
+}
+function setStatus(st){
+  const el = $("#rStatus");
+  const map = {
+    wait:["wait","Enregistrement de votre note en cours… ne fermez pas cette page."],
+    sent:["ok","✔ Votre note a bien été envoyée à l'enseignant. Vous pouvez télécharger votre reçu puis quitter."],
+    fail:["bad","✖ L'envoi a échoué (connexion ?). Gardez cette page ouverte : une nouvelle tentative est faite automatiquement, ou cliquez sur « Réessayer »."],
+    noconf:["bad","✖ L'envoi n'est pas configuré. Prévenez immédiatement l'enseignant et téléchargez votre reçu."]
+  };
+  el.className = "st " + map[st][0]; el.textContent = map[st][1];
+  $("#btnRetry").classList.toggle("hide", !(st==="fail"));
+  $("#btnClose").classList.toggle("hide", st!=="sent");
+}
+async function send(){
+  if (S.sent) return;
+  if (!/^https:\/\/script\.google\.com\//.test(CFG.SCRIPT_URL)){ setStatus("noconf"); return; }
+  setStatus("wait");
+  try{
+    await fetch(CFG.SCRIPT_URL, { method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(payload()) });
+    S.sent = true; save(); setStatus("sent");
+  }catch(e){
+    setStatus("fail"); clearTimeout(retryTimer); retryTimer = setTimeout(send, 15000);
+  }
+}
+$("#btnRetry").onclick = send;
+window.addEventListener("online", () => { if (S && S.finished && !S.sent) send(); });
+$("#btnReceipt").onclick = () => {
+  const p = payload();
+  const txt = `REÇU — Quiz Python Séance 2 (Conditions et boucles)\n` +
+    `Nom : ${p.nom}\nPrénom : ${p.prenom}\nCode étudiant : ${p.code}\nClasse : ${p.classe}\n` +
+    `Note : ${p.note}/20\nBonnes réponses : ${p.bonnes}/${Q.length}\nPénalités : ${p.penalites}\nSorties : ${p.sorties}\n` +
+    `Durée : ${p.duree}\nFin : ${p.motif}\nN° de soumission : ${p.soumission}\nDate : ${new Date().toLocaleString("fr-FR")}\n`;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([txt], {type:"text/plain;charset=utf-8"}));
+  a.download = `recu_${p.code}.txt`; a.click();
+};
+$("#btnClose").onclick = () => {
+  try{ localStorage.removeItem(CFG.KEY); }catch(e){}
+  S = null; location.reload();
+};
+
+/* =====================================================================
+   REPRISE APRÈS RECHARGEMENT
+   ===================================================================== */
+(function init(){
+  const saved = load(CFG.KEY);
+  if (!saved) return;
+  S = saved;
+  if (S.finished){ showResult(); if (!S.sent) send(); return; }
+  if (Date.now() >= S.deadline){ finish("temps ecoule"); return; }
+  startQuiz();
+  setTimeout(() => violation("page rechargée"), 300);
+})();
+</script>
+</body>
+</html>
